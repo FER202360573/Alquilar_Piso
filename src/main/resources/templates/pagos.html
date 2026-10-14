@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apartamentos | Pagos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-warning" th:href="@{/vista/apartamentos}">APARTAMENTOS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Menú">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menuPrincipal">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/vista/apartamentos}">Apartamentos</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/vista/clientes}">Clientes</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/vista/reservaciones}">Reservaciones</a></li>
+                    <li class="nav-item"><a class="nav-link active text-warning fw-bold" th:href="@{/vista/pagos}">Pagos</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/vista/reportes}">Reportes</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container pb-5">
+        <header class="d-flex justify-content-between align-items-end border-bottom border-warning border-3 mb-4 pb-3">
+            <div>
+                <p class="text-uppercase small text-secondary mb-1">Administración</p>
+                <h1 class="h2 mb-0">Pagos</h1>
+            </div>
+            <span class="badge text-bg-dark fs-6" th:text="${#lists.size(pagos)} + ' registrados'">0 registrados</span>
+        </header>
+
+        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${mensaje}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row g-4">
+            <section class="col-lg-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-dark text-white"><h2 class="h5 mb-0">Registrar pago</h2></div>
+                    <div class="card-body">
+                        <form th:action="@{/vista/pagos/guardar}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label" for="reservacionId">Reservación</label>
+                                <select id="reservacionId" name="reservacionId" class="form-select" required>
+                                    <option value="" disabled selected>Selecciona una reservación</option>
+                                    <option th:each="r : ${reservaciones}" th:value="${r.id}"
+                                            th:text="|#${r.id} · ${r.cliente.nombre} ${r.cliente.apellidos} · ${r.apartamento.titulo} (saldo $ ${cuentas[r.id]['saldo']})|"></option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="monto">Monto</label>
+                                <div class="input-group"><span class="input-group-text">$</span><input id="monto" name="monto" type="number" min="0.01" step="0.01" class="form-control" required></div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label" for="metodo">Método de pago</label>
+                                <select id="metodo" name="metodo" class="form-select" required>
+                                    <option value="EFECTIVO">Efectivo</option>
+                                    <option value="TARJETA">Tarjeta</option>
+                                    <option value="TRANSFERENCIA">Transferencia</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-warning w-100 fw-bold" type="submit">Guardar pago</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section class="col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-dark text-white"><h2 class="h5 mb-0">Historial de pagos</h2></div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th>ID</th><th>Reservación</th><th>Cliente</th><th>Apartamento</th><th>Monto</th><th>Fecha</th><th>Método</th></tr></thead>
+                            <tbody>
+                                <tr th:each="p : ${pagos}">
+                                    <td th:text="${p.id}"></td>
+                                    <td th:text="'#' + ${p.reservacion.id}"></td>
+                                    <td th:text="${p.reservacion.cliente.nombre + ' ' + p.reservacion.cliente.apellidos}"></td>
+                                    <td th:text="${p.reservacion.apartamento.titulo}"></td>
+                                    <td class="text-nowrap fw-semibold" th:text="'$ ' + ${#numbers.formatDecimal(p.monto, 1, 'COMMA', 2, 'POINT')}"></td>
+                                    <td class="text-nowrap" th:text="${p.fechaPago}"></td>
+                                    <td><span class="badge text-bg-secondary" th:text="${p.metodo}"></span></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(pagos)}"><td colspan="7" class="text-center text-secondary py-4">No hay pagos registrados.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

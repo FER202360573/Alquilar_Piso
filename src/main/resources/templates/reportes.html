@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apartamentos | Reportes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-warning" th:href="@{/vista/apartamentos}">APARTAMENTOS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Menú">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menuPrincipal">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/vista/apartamentos}">Apartamentos</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/vista/clientes}">Clientes</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/vista/reservaciones}">Reservaciones</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/vista/pagos}">Pagos</a></li>
+                    <li class="nav-item"><a class="nav-link active text-warning fw-bold" th:href="@{/vista/reportes}">Reportes</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container pb-5">
+        <header class="d-flex justify-content-between align-items-end border-bottom border-warning border-3 mb-4 pb-3">
+            <div>
+                <p class="text-uppercase small text-secondary mb-1">Administración</p>
+                <h1 class="h2 mb-0">Reportes</h1>
+            </div>
+
+        </header>
+
+        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${mensaje}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <form class="row g-2 align-items-end mb-4" th:action="@{/vista/reportes}" method="get">
+            <div class="col-sm-4 col-md-3"><label class="form-label" for="inicio">Desde</label><input id="inicio" name="inicio" type="date" class="form-control" th:value="${inicio}" required></div>
+            <div class="col-sm-4 col-md-3"><label class="form-label" for="fin">Hasta</label><input id="fin" name="fin" type="date" class="form-control" th:value="${fin}" required></div>
+            <div class="col-sm-4 col-md-2"><button class="btn btn-warning fw-bold w-100" type="submit">Consultar</button></div>
+        </form>
+
+        <div class="row g-4">
+            <section class="col-lg-6" th:if="${ocupacion != null}">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">Ocupación</h2>
+                        <span class="badge text-bg-warning fs-6" th:text="${ocupacion['ocupacionGeneralPorcentaje']} + ' % general'"></span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle mb-0">
+                            <thead class="table-light"><tr><th>Apartamento</th><th class="text-end">Días ocupados</th><th class="text-end">Días del periodo</th><th class="text-end">Ocupación</th></tr></thead>
+                            <tbody>
+                                <tr th:each="o : ${ocupacion['apartamentos']}">
+                                    <td th:text="${o['titulo']}"></td>
+                                    <td class="text-end" th:text="${o['diasOcupados']}"></td>
+                                    <td class="text-end" th:text="${o['diasEnRango']}"></td>
+                                    <td class="text-end fw-semibold" th:text="${o['ocupacionPorcentaje']} + ' %'"></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(ocupacion['apartamentos'])}"><td colspan="4" class="text-center text-secondary py-4">No hay apartamentos activos.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="col-lg-6" th:if="${ingresos != null}">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-dark text-white"><h2 class="h5 mb-0">Ingresos</h2></div>
+                    <div class="card-body">
+                        <p class="display-6 fw-bold text-success mb-1" th:text="'$ ' + ${#numbers.formatDecimal(ingresos['totalIngresos'], 1, 'COMMA', 2, 'POINT')}"></p>
+                        <p class="text-secondary" th:text="${ingresos['numeroPagos']} + ' pagos recibidos en el periodo'"></p>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between" th:each="m : ${ingresos['ingresosPorMetodo']}">
+                                <span th:text="${m.key}"></span>
+                                <span class="fw-semibold" th:text="'$ ' + ${#numbers.formatDecimal(m.value, 1, 'COMMA', 2, 'POINT')}"></span>
+                            </li>
+                            <li class="list-group-item text-secondary text-center" th:if="${#maps.isEmpty(ingresos['ingresosPorMetodo'])}">Sin pagos en este periodo.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">Morosidad (saldos pendientes)</h2>
+                        <span class="badge text-bg-danger fs-6" th:text="'$ ' + ${#numbers.formatDecimal(morosidad['totalAdeudado'], 1, 'COMMA', 2, 'POINT')} + ' adeudados'"></span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle mb-0">
+                            <thead class="table-light"><tr><th>Reservación</th><th>Cliente</th><th>Contacto</th><th>Apartamento</th><th>Entrada</th><th class="text-end">Total</th><th class="text-end">Pagado</th><th class="text-end">Saldo</th></tr></thead>
+                            <tbody>
+                                <tr th:each="d : ${morosidad['deudores']}">
+                                    <td th:text="'#' + ${d['reservacionId']}"></td>
+                                    <td class="fw-semibold" th:text="${d['cliente']}"></td>
+                                    <td class="small"><span th:text="${d['correo']}"></span><br><span th:text="${d['telefono']}"></span></td>
+                                    <td th:text="${d['apartamento']}"></td>
+                                    <td class="text-nowrap" th:text="${d['fechaInicio']}"></td>
+                                    <td class="text-end text-nowrap" th:text="'$ ' + ${#numbers.formatDecimal(d['total'], 1, 'COMMA', 2, 'POINT')}"></td>
+                                    <td class="text-end text-nowrap" th:text="'$ ' + ${#numbers.formatDecimal(d['totalPagado'], 1, 'COMMA', 2, 'POINT')}"></td>
+                                    <td class="text-end text-nowrap fw-bold text-danger" th:text="'$ ' + ${#numbers.formatDecimal(d['saldo'], 1, 'COMMA', 2, 'POINT')}"></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(morosidad['deudores'])}"><td colspan="8" class="text-center text-success py-4">No hay deudores. Todo está al corriente.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
